@@ -12,7 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-class BluezAdapterProvider {
+public class BluezAdapterProvider {
 
     public final @Nullable DBusConnection dBusConnection;
     public final @Nullable BluezAdapter adapter;
