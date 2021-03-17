@@ -793,14 +793,11 @@ public class BluetoothCentralManager {
                 } else {
 
                     /*
-                    BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                    String out = "";
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        out += line;
-                    }
-                    logger.warn("Magic stout: {}", out);
-                    */
+                     * BufferedReader br = new BufferedReader(new
+                     * InputStreamReader(proc.getInputStream())); String out = ""; String line;
+                     * while ((line = br.readLine()) != null) { out += line; }
+                     * logger.warn("Magic stout: {}", out);
+                     */
                 }
                 proc.destroy();
             }
@@ -950,6 +947,22 @@ public class BluetoothCentralManager {
      * @param peripheralCallback the peripheral callback to use
      */
     public void connectPeripheral(@NotNull final BluetoothPeripheral peripheral, @NotNull final BluetoothPeripheralCallback peripheralCallback) {
+        this.connectPeripheral(peripheral, peripheralCallback, true);
+    }
+
+    /**
+     * Connect to a known peripheral immediately. The peripheral must have been
+     * found by scanning for this call to succeed. This method will time out in max
+     * 30 seconds on most phones and in 5 seconds on Samsung phones. If the
+     * peripheral is already connected, no connection attempt will be made. This
+     * method is asynchronous and there can be only one outstanding connect.
+     *
+     * @param peripheral         BLE peripheral to connect with
+     * @param peripheralCallback the peripheral callback to use
+     * @param stopScanning       stop scanning if true. Some adapters have issues
+     *                           with (dis)connecting while scanning
+     */
+    public void connectPeripheral(@NotNull final BluetoothPeripheral peripheral, @NotNull final BluetoothPeripheralCallback peripheralCallback, @NotNull boolean stopScanning) {
         Objects.requireNonNull(peripheral, NULL_PERIPHERAL_ERROR);
         Objects.requireNonNull(peripheralCallback, "no valid peripheral callback specified");
         peripheral.setPeripheralCallback(peripheralCallback);
@@ -973,9 +986,11 @@ public class BluetoothCentralManager {
             return;
         }
 
-        // Some adapters have issues with (dis)connecting while scanning, so stop scan
-        // first
-        stopScanning();
+        if (stopScanning) {
+            // Some adapters have issues with (dis)connecting while scanning, so stop scan
+            // first
+            stopScanning();
+        }
 
         unconnectedPeripherals.put(peripheral.getAddress(), peripheral);
         final boolean result = commandQueue.add(() -> {
