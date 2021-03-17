@@ -1,5 +1,6 @@
 /*
  *   Copyright (c) 2021 Martijn van Welie
+ *   Copyright (c) 2021 Felix Mencias
  *
  *   Permission is hereby granted, free of charge, to any person obtaining a copy
  *   of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +26,7 @@ package com.welie.blessed;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import com.welie.blessed.bluez.BluezAdapter;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
