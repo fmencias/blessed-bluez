@@ -26,6 +26,11 @@ import static com.welie.blessed.BluetoothPeripheral.*;
 import static com.welie.blessed.ConnectionState.CONNECTED;
 import static java.lang.Thread.sleep;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+
 /**
  * Represents a Bluetooth Central object
  */
@@ -134,6 +139,11 @@ public class BluetoothCentralManager {
      * Avoid auto restart scanning
      */
     public static final String SCANOPTION_NO_AUTORESTART = "ScanOption.NoAutoRestart";
+
+    /**
+     * Disable Filter duplicate data
+     */
+    public static final String SCANOPTION_DISABLE_FILTER_DUPLICATE_DATA = "ScanOption.DisableFilterDuplicateData";
 
     private final InternalCallback internalCallback = new InternalCallback() {
         @Override
@@ -397,7 +407,12 @@ public class BluetoothCentralManager {
     private void setBasicFilters() {
         scanFilters.put(DiscoveryFilter.Transport, DiscoveryTransport.LE);
         scanFilters.put(DiscoveryFilter.RSSI, DISCOVERY_RSSI_THRESHOLD);
-        scanFilters.put(DiscoveryFilter.DuplicateData, true);
+        if (this.scanOptions.contains(SCANOPTION_DISABLE_FILTER_DUPLICATE_DATA)) {
+            scanFilters.put(DiscoveryFilter.DuplicateData, false);
+        } else {
+            scanFilters.put(DiscoveryFilter.DuplicateData, true);
+        }
+
     }
 
     private boolean notAllowedByFilter(@NotNull final ScanResult scanResult) {
@@ -641,6 +656,10 @@ public class BluetoothCentralManager {
 
                 if (isScanning) {
                     isStoppingScan = false;
+                    if (this.scanOptions.contains(SCANOPTION_DISABLE_FILTER_DUPLICATE_DATA)) {
+                        invokeCmdToScanDuplicateData();
+                    }
+
                     callBackHandler.post(bluetoothCentralManagerCallback::onScanStarted);
                 } else {
                     scannedPeripherals.clear();
@@ -737,6 +756,61 @@ public class BluetoothCentralManager {
             logger.error(ENQUEUE_ERROR);
         }
 
+    }
+
+    private void invokeCmdToScanDuplicateData() {
+        // this is a very ugly workaround to receive all advertising packets
+        String cmd1 = "/usr/bin/hcitool cmd 0x08 0x000C 0x00 0x00";
+        String cmd2 = "/usr/bin/hcitool cmd 0x08 0x000C 0x01 0x00";
+        // cmd = "ls -l";
+        logger.info("Invoking the magic");
+        try {
+            Process proc;
+            proc = Runtime.getRuntime().exec(cmd1);
+            proc.waitFor();
+
+            if (proc.exitValue() > 0) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                String error = "";
+                String line;
+                while ((line = br.readLine()) != null) {
+                    error += line;
+                }
+                logger.warn("Failed to execute the magic: {}", error);
+            } else {
+                proc.destroy();
+                proc = Runtime.getRuntime().exec(cmd2);
+                proc.waitFor();
+
+                if (proc.exitValue() > 0) {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+                    String error = "";
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        error += line;
+                    }
+                    logger.warn("Failed to execute the magic: {}", error);
+                } else {
+
+                    BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+                    String out = "";
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        out += line;
+                    }
+                    logger.warn("Magic stout: {}", out);
+                }
+                proc.destroy();
+            }
+
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        } catch (RuntimeException rtex) {
+            logger.error(rtex.getMessage());
+            rtex.printStackTrace();
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     /*
