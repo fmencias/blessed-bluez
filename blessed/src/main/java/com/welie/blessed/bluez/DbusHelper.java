@@ -86,8 +86,10 @@ public final class DbusHelper {
         Set<String> nodes = DbusHelper.findNodes(_connection, BLUEZ_PATH);
         for (String hci : nodes) {
             Adapter1 adapter1 = DbusHelper.getRemoteObject(_connection, BLUEZ_PATH + "/" + hci, Adapter1.class);
+            LOGGER.info("New adapter found: " + hci);
             if (adapter1 != null) {
                 BluezAdapter bluetoothAdapter = new BluezAdapter(adapter1, BLUEZ_PATH + "/" + hci, _connection);
+                
                 bluetoothAdaptersByAdapterName.put(hci, bluetoothAdapter);
             }
         }

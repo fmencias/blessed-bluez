@@ -42,6 +42,17 @@ class BluezAdapterProvider {
         if (adapters.isEmpty()) return null;
 
         adapters.sort(Comparator.comparing(BluezAdapter::getDeviceName));
-        return adapters.get(adapters.size() - 1);
+        BluezAdapter adapter = adapters.get(adapters.size() - 1);
+        
+        // avoid to return test adapter. It's happen with bluez 5.50 and experimental support enabled
+        if (adapter.getDeviceName().equals("test")) {
+            if (adapters.size() > 1) {
+                return adapters.get(adapters.size() -2);
+            } else {
+                return adapter; // test
+            }
+        } else {
+            return adapter;
+        }
     }
 }
