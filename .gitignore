@@ -33,3 +33,4 @@ out/
 hs_err_pid*
 /bin/
 target/
+/blessed-bluez/
