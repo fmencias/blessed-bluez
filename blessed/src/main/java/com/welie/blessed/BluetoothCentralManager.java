@@ -792,6 +792,7 @@ public class BluetoothCentralManager {
                     logger.warn("Failed to execute the magic: {}", error);
                 } else {
 
+                    /*
                     BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
                     String out = "";
                     String line;
@@ -799,6 +800,7 @@ public class BluetoothCentralManager {
                         out += line;
                     }
                     logger.warn("Magic stout: {}", out);
+                    */
                 }
                 proc.destroy();
             }
