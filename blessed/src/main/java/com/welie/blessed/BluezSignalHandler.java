@@ -17,7 +17,6 @@ import static com.welie.blessed.BluetoothCentralManager.BLUEZ_ADAPTER_INTERFACE;
 import static com.welie.blessed.BluetoothPeripheral.BLUEZ_CHARACTERISTIC_INTERFACE;
 import static com.welie.blessed.BluetoothPeripheral.BLUEZ_DEVICE_INTERFACE;
 
-@SuppressWarnings("UnusedReturnValue")
 class BluezSignalHandler {
     private static final String TAG = BluezSignalHandler.class.getSimpleName();
     private static final Logger logger = LoggerFactory.getLogger(TAG);

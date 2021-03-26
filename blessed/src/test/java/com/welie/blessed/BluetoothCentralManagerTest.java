@@ -39,6 +39,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@SuppressWarnings({"unused","rawtypes","unchecked"})
 class BluetoothCentralManagerTest {
     @Mock
     DBusConnection dBusConnection;

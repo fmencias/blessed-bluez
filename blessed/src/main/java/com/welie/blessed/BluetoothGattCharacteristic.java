@@ -13,7 +13,7 @@ import java.util.*;
  * additional information and optional GATT descriptors, {@link BluetoothGattDescriptor}.
  */
 
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+
 public class BluetoothGattCharacteristic {
 
     /**

@@ -5,31 +5,30 @@ import com.welie.blessed.internal.InternalCallback;
 import org.bluez.Device1;
 import org.bluez.exceptions.*;
 import org.freedesktop.dbus.DBusMap;
+import org.freedesktop.dbus.DBusPath;
+import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.dbus.exceptions.DBusExecutionException;
 import org.freedesktop.dbus.handlers.AbstractPropertiesChangedHandler;
+import org.freedesktop.dbus.interfaces.CallbackHandler;
+import org.freedesktop.dbus.interfaces.ObjectManager;
 import org.freedesktop.dbus.interfaces.Properties;
 import org.freedesktop.dbus.types.UInt16;
 import org.freedesktop.dbus.types.Variant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import static com.welie.blessed.BluetoothPeripheral.*;
 import static com.welie.blessed.ConnectionState.CONNECTED;
 import static java.lang.Thread.sleep;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 
 /**
  * Represents a Bluetooth Central object
@@ -145,6 +144,11 @@ public class BluetoothCentralManager {
      */
     public static final String SCANOPTION_DISABLE_FILTER_DUPLICATE_DATA = "ScanOption.DisableFilterDuplicateData";
 
+    /**
+     * Explore known devices by bluez at startup
+     */
+    public static final String SCANOPTION_EXPLORE_DEVICES_AT_STARTUP = "ScanOption.ExploreDevicesAtStartup";
+
     private final InternalCallback internalCallback = new InternalCallback() {
         @Override
         public void connected(@NotNull final BluetoothPeripheral peripheral) {
@@ -253,6 +257,11 @@ public class BluetoothCentralManager {
             setupPairingAgent();
             BluezSignalHandler.getInstance().addCentral(this);
         } catch (Exception ignore) {
+            logger.warn(ignore.getMessage());
+        }
+
+        if (this.scanOptions.contains(SCANOPTION_EXPLORE_DEVICES_AT_STARTUP)) {
+            this.exploreKnownPeripherals();
         }
     }
 
@@ -288,7 +297,8 @@ public class BluetoothCentralManager {
 //                "NoInputNoOutput" and "KeyboardDisplay" which
 //                reflects the input and output capabilities of the
 //                agent.
-            agentManager.registerAgent(agent, "KeyboardOnly");
+            // agentManager.registerAgent(agent, "KeyboardOnly");
+            agentManager.registerAgent(agent, "NoInputNoOutput");
             agentManager.requestDefaultAgent(agent);
         }
     }
@@ -471,6 +481,7 @@ public class BluetoothCentralManager {
     private void onScanResult(@NotNull final BluetoothPeripheral peripheral, @NotNull final ScanResult scanResult) {
         // Check first if we are autoconnecting to this peripheral
         if (reconnectPeripheralAddresses.contains(scanResult.getAddress())) {
+            logger.trace("[{}] onScanResult, but trying reconnect", peripheral.getAddress());
             onFoundReconnectionPeripheral(peripheral);
             return;
         }
@@ -480,8 +491,10 @@ public class BluetoothCentralManager {
             if (scanOptions.contains(SCANOPTION_NO_NULL_NAMES) && (scanResult.getName() == null))
                 return;
 
-            if (notAllowedByFilter(scanResult))
+            if (notAllowedByFilter(scanResult)) {
+                // logger.trace("[{}] onScanResult filtered", peripheral.getAddress());
                 return;
+            }
 
             callBackHandler.post(() -> {
                 scanResult.stamp();
@@ -491,6 +504,16 @@ public class BluetoothCentralManager {
     }
 
     void handleInterfaceAddedForDevice(@NotNull final String path, @NotNull final Map<String, Variant<?>> value) {
+        ScanResult scanResult = this.handleNewDevice(value);
+        if (scanResult != null) {
+            final BluetoothPeripheral peripheral = getPeripheral(scanResult.getAddress());
+            onScanResult(peripheral, scanResult);
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private ScanResult handleNewDevice(@NotNull final Map<String, Variant<?>> value) {
         final String deviceAddress;
         final String deviceName;
         final int rssi;
@@ -501,14 +524,14 @@ public class BluetoothCentralManager {
             deviceAddress = (String) value.get(PROPERTY_ADDRESS).getValue();
         } else {
             // There MUST be an address, so if not bail out...
-            return;
+            return null;
         }
 
         // Get the device
         final BluezDevice device = getDeviceByAddress(deviceAddress);
         if (device == null) {
             // Something is very wrong, don't handle this signal
-            return;
+            return null;
         }
 
         // Grab name
@@ -520,7 +543,7 @@ public class BluetoothCentralManager {
 
         // Grab service UUIDs
         if ((value.get(PROPERTY_SERVICE_UUIDS) != null) && (value.get(PROPERTY_SERVICE_UUIDS).getValue() instanceof ArrayList)) {
-            serviceUUIDs = (ArrayList) value.get(PROPERTY_SERVICE_UUIDS).getValue();
+            serviceUUIDs = (ArrayList<String>) value.get(PROPERTY_SERVICE_UUIDS).getValue();
         }
 
         // Grab RSSI
@@ -539,22 +562,21 @@ public class BluetoothCentralManager {
         // Get manufacturer data
         final Map<Integer, byte[]> manufacturerData = new HashMap<>();
         if ((value.get(PROPERTY_MANUFACTURER_DATA) != null) && (value.get(PROPERTY_MANUFACTURER_DATA).getValue() instanceof Map)) {
-            final DBusMap<UInt16, Variant<byte[]>> mdata = (DBusMap) value.get(PROPERTY_MANUFACTURER_DATA).getValue();
+            final DBusMap<UInt16, Variant<byte[]>> mdata = (DBusMap<UInt16, Variant<byte[]>>) value.get(PROPERTY_MANUFACTURER_DATA).getValue();
             mdata.forEach((k, v) -> manufacturerData.put(k.intValue(), v.getValue()));
         }
 
         // Get service data
         final Map<String, byte[]> serviceData = new HashMap<>();
         if ((value.get(PROPERTY_SERVICE_DATA) != null) && (value.get(PROPERTY_SERVICE_DATA).getValue() instanceof Map)) {
-            final DBusMap<String, Variant<byte[]>> sdata = (DBusMap) value.get(PROPERTY_SERVICE_DATA).getValue();
+            final DBusMap<String, Variant<byte[]>> sdata = (DBusMap<String, Variant<byte[]>>) value.get(PROPERTY_SERVICE_DATA).getValue();
             sdata.forEach((k, v) -> serviceData.put(k, v.getValue()));
         }
 
         // Create ScanResult
         final ScanResult scanResult = new ScanResult(deviceName, deviceAddress, finalServiceUUIDs, rssi, manufacturerData, serviceData);
-        final BluetoothPeripheral peripheral = getPeripheral(deviceAddress);
         scanResultCache.put(deviceAddress, scanResult);
-        onScanResult(peripheral, scanResult);
+        return scanResult;
     }
 
     private final AbstractPropertiesChangedHandler propertiesChangedHandler = new AbstractPropertiesChangedHandler() {
@@ -586,7 +608,6 @@ public class BluetoothCentralManager {
         signalHandler.post(() -> propertiesChangedHandler.handle(propertiesChanged));
     }
 
-    @SuppressWarnings("unchecked")
     private void handlePropertiesChangedForDeviceWhenScanning(@NotNull final BluezDevice bluezDevice, @NotNull final Map<String, Variant<?>> propertiesChanged) {
         Objects.requireNonNull(bluezDevice, "no valid bluezDevice supplied");
         Objects.requireNonNull(propertiesChanged, "no valid propertieschanged supplied");
@@ -612,6 +633,7 @@ public class BluetoothCentralManager {
         onScanResult(peripheral, scanResult);
     }
 
+    @SuppressWarnings("unchecked")
     private void updateScanResult(@NotNull final Map<String, Variant<?>> propertiesChanged, @NotNull final ScanResult scanResult) {
         // Update the scanResult
         Set<String> keys = propertiesChanged.keySet();
@@ -657,6 +679,7 @@ public class BluetoothCentralManager {
                 if (isScanning) {
                     isStoppingScan = false;
                     if (this.scanOptions.contains(SCANOPTION_DISABLE_FILTER_DUPLICATE_DATA)) {
+                        // XXX shoul be exec after start scanning
                         invokeCmdToScanDuplicateData();
                     }
 
@@ -1033,7 +1056,6 @@ public class BluetoothCentralManager {
      * @param peripheralCallback the peripheral callback to use
      * @return true if all arguments were valid, otherwise false
      */
-    @SuppressWarnings("UnusedReturnValue,unused")
     public boolean autoConnectPeripheral(@NotNull final BluetoothPeripheral peripheral, @NotNull final BluetoothPeripheralCallback peripheralCallback) {
         Objects.requireNonNull(peripheral, NULL_PERIPHERAL_ERROR);
         Objects.requireNonNull(peripheralCallback, "no valid peripheral callback specified");
@@ -1059,7 +1081,6 @@ public class BluetoothCentralManager {
      *
      * @param batch the map of peripherals and their callbacks to autoconnect to
      */
-    @SuppressWarnings("unused")
     public void autoConnectPeripheralsBatch(@NotNull final Map<BluetoothPeripheral, BluetoothPeripheralCallback> batch) {
         Objects.requireNonNull(batch, "no valid batch provided");
 
@@ -1088,7 +1109,6 @@ public class BluetoothCentralManager {
      *
      * @param peripheral the peripheral
      */
-    @SuppressWarnings("unused")
     public void cancelConnection(@NotNull final BluetoothPeripheral peripheral) {
         Objects.requireNonNull(peripheral, NULL_PERIPHERAL_ERROR);
 
@@ -1130,7 +1150,6 @@ public class BluetoothCentralManager {
      * @param peripheralAddress the address of the peripheral
      * @return true if bond was removed, otherwise false
      */
-    @SuppressWarnings("unused")
     public boolean removeBond(@NotNull final String peripheralAddress) {
         Objects.requireNonNull(peripheralAddress, "no peripheral address provided");
 
@@ -1145,7 +1164,6 @@ public class BluetoothCentralManager {
      *
      * @return list of connected peripherals
      */
-    @SuppressWarnings("unused")
     @NotNull
     public List<BluetoothPeripheral> getConnectedPeripherals() {
         return new ArrayList<>(connectedPeripherals.values());
@@ -1200,7 +1218,6 @@ public class BluetoothCentralManager {
      * @return true if the pin code and peripheral address are valid and stored
      *         internally
      */
-    @SuppressWarnings("UnusedReturnValue,unused")
     public boolean setPinCodeForPeripheral(@NotNull final String peripheralAddress, @NotNull final String pin) {
         Objects.requireNonNull(peripheralAddress, "no peripheral address provided");
         Objects.requireNonNull(pin, "no pin provided");
@@ -1341,6 +1358,42 @@ public class BluetoothCentralManager {
         } catch (Exception e) {
             logger.error("Error removing device");
             return false;
+        }
+    }
+
+    /**
+     * Explore known devices from bluez. If the device is known, bluez doesn't
+     * signal InterfaceAdded
+     */
+    public void exploreKnownPeripherals() {
+        CallbackHandler<DBusMap<DBusPath, Map<String, Map<String, Variant<?>>>>> cb = new CallbackHandler<DBusMap<DBusPath, Map<String, Map<String, Variant<?>>>>>() {
+
+            @Override
+            public void handleError(DBusExecutionException e) {
+                logger.warn(e.getMessage());
+            }
+
+            @Override
+            public void handle(DBusMap<DBusPath, Map<String, Map<String, Variant<?>>>> r) {
+
+                r.forEach((b, m) -> {
+                    m.forEach((s, map) -> {
+                        if (s.equals(BluetoothPeripheral.BLUEZ_DEVICE_INTERFACE)) {
+                            handleNewDevice(map);
+                        }
+                    });
+
+                });
+            }
+        };
+        ObjectManager objMan;
+        try {
+            objMan = this.adapter.getDBusConnection().getRemoteObject("org.bluez", "/", ObjectManager.class);
+            this.adapter.getDBusConnection().callWithCallback(objMan, "GetManagedObjects", cb);
+
+        } catch (DBusException e1) {
+            logger.warn(e1.getMessage());
+
         }
     }
 }

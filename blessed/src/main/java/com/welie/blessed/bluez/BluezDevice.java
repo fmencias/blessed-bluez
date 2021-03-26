@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 
 /**
  * Wrapper class which represents a remote bluetooth device.
+ * 
  * @author hypfvieh
  *
  */
@@ -44,6 +45,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * Return the list of available {@link BluezGattService}s.<br>
      * Will start a query if no list was gathered before.<br>
      * To re-scan for services use {@link #refreshGattServices()}.
+     * 
      * @return List, maybe empty but never null
      */
     public List<BluezGattService> getGattServices() {
@@ -70,6 +72,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * Get the given {@link BluezGattService} instance by UUID.
+     * 
      * @param uuid uuid
      * @return {@link BluezGattService}, maybe null if not found
      */
@@ -81,16 +84,19 @@ public class BluezDevice extends AbstractBluetoothObject {
     }
 
     /**
-     * Get {@link BluezAdapter} object where this {@link BluezDevice} object belongs to.
+     * Get {@link BluezAdapter} object where this {@link BluezDevice} object belongs
+     * to.
+     * 
      * @return adapter
      */
     public BluezAdapter getAdapter() {
         return adapter;
     }
 
-
     /**
-     * Get the raw {@link Device1} object wrapped by this {@link BluezDevice} object.
+     * Get the raw {@link Device1} object wrapped by this {@link BluezDevice}
+     * object.
+     * 
      * @return device
      */
     public Device1 getRawDevice() {
@@ -99,6 +105,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * True if incoming connections are rejected, false otherwise.
+     * 
      * @return maybe null if feature is not supported
      */
     public Boolean isBlocked() {
@@ -113,6 +120,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * drivers will also be removed and no new ones will<br>
      * be probed as long as the device is blocked
      * </p>
+     * 
      * @param _blocked set blocked status
      */
     public void setBlocked(Boolean _blocked) {
@@ -121,6 +129,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * True if the remote device is trusted, false otherwise.
+     * 
      * @return maybe null if feature is not supported
      */
     public Boolean isTrusted() {
@@ -130,6 +139,7 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * Set to true to trust the connected device, or to false if you don't.<br>
      * Default is false.
+     * 
      * @param _trusted set trusted
      */
     public void setTrusted(boolean _trusted) {
@@ -138,6 +148,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * The current name alias for the remote device.
+     * 
      * @return alias name
      */
     public String getAlias() {
@@ -154,6 +165,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * device name. Setting an empty string as alias will<br>
      * convert it back to the remote device name.
      * </p>
+     * 
      * @param _alias alias name to set
      */
     public void setAlias(String _alias) {
@@ -177,15 +189,16 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * List of 128-bit UUIDs that represents the available
-     * remote services.
+     * List of 128-bit UUIDs that represents the available remote services.
      * </p>
+     * 
      * @return string array of UUIDs, maybe null
      */
     @NotNull
     public List<@NotNull UUID> getUuids() {
         List<@NotNull UUID> result = new ArrayList<>();
         try {
+            @SuppressWarnings("unchecked")
             List<String> typed = getTyped("UUIDs", ArrayList.class);
             if (typed != null) {
                 typed.stream().map(UUID::fromString).forEach(result::add);
@@ -197,6 +210,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * True if device is connected, false otherwise.
+     * 
      * @return maybe null if feature is not supported
      */
     public Boolean isConnected() {
@@ -214,6 +228,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * in the case of Bluetooth 2.1 (or newer) devices that<br>
      * have disabled Extended Inquiry Response support.
      * </p>
+     * 
      * @return maybe null if feature is not supported
      */
     public Boolean isLegacyPairing() {
@@ -222,6 +237,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * True if the device is currently paired with another device. False otherwise.
+     * 
      * @return boolean, maybe null
      */
     public Boolean isPaired() {
@@ -231,9 +247,9 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Indicate whether or not service discovery has been
-     * resolved.
+     * Indicate whether or not service discovery has been resolved.
      * </p>
+     * 
      * @return maybe null if feature is not supported
      */
     public Boolean isServicesResolved() {
@@ -243,11 +259,13 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Service advertisement data. Keys are the UUIDs in
-     * string format followed by its byte array value.
+     * Service advertisement data. Keys are the UUIDs in string format followed by
+     * its byte array value.
      * </p>
+     * 
      * @return map of string/bytearray, maybe null
      */
+    @SuppressWarnings("unchecked")
     public @NotNull Map<@NotNull String, byte[]> getServiceData() {
         Map<@NotNull String, byte[]> result = new HashMap<>();
         try {
@@ -257,6 +275,7 @@ public class BluezDevice extends AbstractBluetoothObject {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, byte[]> getAdvertisementData() {
         return getTyped("AdvertisingData", DBusMap.class);
     }
@@ -264,19 +283,20 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Manufacturer specific advertisement data. Keys are
-     * 16 bits Manufacturer ID followed by its byte array
-     * value.
+     * Manufacturer specific advertisement data. Keys are 16 bits Manufacturer ID
+     * followed by its byte array value.
      * </p>
+     * 
      * @return map of uint16/bytearray, maybe null
      */
+    @SuppressWarnings("unchecked")
     public @NotNull Map<Integer, byte[]> getManufacturerData() {
         Map<Integer, byte[]> result = new HashMap<>();
 
         try {
             // Convert manufacturer data
             final Map<UInt16, byte[]> deviceManufacturerData = getTyped("ManufacturerData", DBusMap.class);
-            if(deviceManufacturerData != null) {
+            if (deviceManufacturerData != null) {
                 deviceManufacturerData.forEach((key, value) -> result.put(key.intValue(), value));
             }
             return result;
@@ -288,9 +308,10 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Received Signal Strength Indicator of the remote
-     * device (inquiry or advertising).
+     * Received Signal Strength Indicator of the remote device (inquiry or
+     * advertising).
      * </p>
+     * 
      * @return short, maybe null
      */
     public Short getRssi() {
@@ -305,9 +326,9 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Advertised transmitted power level (inquiry or
-     * advertising).
+     * Advertised transmitted power level (inquiry or advertising).
      * </p>
+     * 
      * @return short, maybe null
      */
     public Short getTxPower() {
@@ -316,6 +337,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * Returns the remote devices bluetooth (MAC) address.
+     * 
      * @return mac address, maybe null
      */
     public String getAddress() {
@@ -330,9 +352,10 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Proposed icon name according to the freedesktop.org
-     * icon naming specification.
+     * Proposed icon name according to the freedesktop.org icon naming
+     * specification.
      * </p>
+     * 
      * @return icon name, maybe null
      */
     public String getIcon() {
@@ -342,9 +365,9 @@ public class BluezDevice extends AbstractBluetoothObject {
     /**
      * <b>From bluez Documentation:</b>
      * <p>
-     * Remote Device ID information in modalias format
-     * used by the kernel and udev.
+     * Remote Device ID information in modalias format used by the kernel and udev.
      * </p>
+     * 
      * @return modalias string, maybe null
      */
     public String getModAlias() {
@@ -353,8 +376,10 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     /**
      * Get the bluetooth device name.<br>
-     * This may fail if you not connected to the device, or if the device does not support this operation.<br>
-     * If no name could be retrieved, the alias will be used.<br><br>
+     * This may fail if you not connected to the device, or if the device does not
+     * support this operation.<br>
+     * If no name could be retrieved, the alias will be used.<br>
+     * <br>
      *
      * <b>From bluez Documentation:</b>
      * <p>
@@ -366,6 +391,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * If the Alias property is unset, it will reflect<br>
      * this value which makes it more convenient.
      * </p>
+     * 
      * @return name, maybe null
      */
     public String getName() {
@@ -382,6 +408,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * <p>
      * External appearance of device, as found on GAP service.
      * </p>
+     * 
      * @return integer, maybe null
      */
     public Integer getAppearance() {
@@ -394,6 +421,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * <p>
      * The Bluetooth class of device of the remote device.
      * </p>
+     * 
      * @return integer, maybe null
      */
     public Integer getBluetoothClass() {
@@ -408,8 +436,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * the remote device supports that can be connected<br>
      * to and have been flagged as auto-connectable on<br>
      * our side. If only subset of profiles is already<br>
-     * connected it will try to connect currently disconnected
-     * ones.
+     * connected it will try to connect currently disconnected ones.
      * </p>
      */
     public void connect() throws BluezFailedException, BluezAlreadyConnectedException, BluezNotReadyException, BluezInProgressException {
@@ -423,10 +450,12 @@ public class BluezDevice extends AbstractBluetoothObject {
      * profiles and then terminates low-level ACL connection.<br>
      * ACL connection will be terminated even if some profiles<br>
      * were not disconnected properly e.g. due to misbehaving<br>
-     * device.<br><br>
+     * device.<br>
+     * <br>
      * This method can be also used to cancel a preceding<br>
      * Connect call before a reply to it has been received.
      * </p>
+     * 
      * @return true if disconnected false otherwise
      */
     public boolean disconnect() {
@@ -453,8 +482,7 @@ public class BluezDevice extends AbstractBluetoothObject {
         try {
             rawdevice.ConnectProfile(_uuid.toString());
             return true;
-        } catch (BluezFailedException | BluezInProgressException | BluezInvalidArgumentsException
-                | BluezNotAvailableException | BluezNotReadyException _ex) {
+        } catch (BluezFailedException | BluezInProgressException | BluezInvalidArgumentsException | BluezNotAvailableException | BluezNotReadyException _ex) {
             return false;
         }
     }
@@ -464,7 +492,8 @@ public class BluezDevice extends AbstractBluetoothObject {
      * <p>
      * This method disconnects a specific profile of<br>
      * this device. The profile needs to be registered<br>
-     * client profile.<br><br>
+     * client profile.<br>
+     * <br>
      * There is no connection tracking for a profile, so<br>
      * as long as the profile is registered this will always<br>
      * succeed.
@@ -476,8 +505,7 @@ public class BluezDevice extends AbstractBluetoothObject {
     public boolean disconnectProfile(UUID _uuid) {
         try {
             rawdevice.DisconnectProfile(_uuid.toString());
-        } catch (BluezFailedException | BluezInProgressException | BluezInvalidArgumentsException
-                | BluezNotSupportedException _ex) {
+        } catch (BluezFailedException | BluezInProgressException | BluezInvalidArgumentsException | BluezNotSupportedException _ex) {
             return false;
         }
 
@@ -489,22 +517,25 @@ public class BluezDevice extends AbstractBluetoothObject {
      * <p>
      * This method will connect to the remote device,<br>
      * initiate pairing and then retrieve all SDP records<br>
-     * (or GATT primary services).<br><br>
+     * (or GATT primary services).<br>
+     * <br>
      * If the application has registered its own agent,<br>
      * then that specific agent will be used. Otherwise<br>
-     * it will use the default agent.<br><br>
+     * it will use the default agent.<br>
+     * <br>
      * Only for applications like a pairing wizard it<br>
      * would make sense to have its own agent. In almost<br>
      * all other cases the default agent will handle<br>
-     * this just fine.<br><br>
+     * this just fine.<br>
+     * <br>
      * In case there is no application agent and also<br>
      * no default agent present, this method will fail.
      * </p>
      */
-    public void pair() throws BluezInProgressException, BluezInvalidArgumentsException, BluezFailedException, BluezAuthenticationFailedException, BluezAlreadyExistsException, BluezAuthenticationCanceledException, BluezAuthenticationRejectedException, BluezAuthenticationTimeoutException, BluezConnectionAttemptFailedException {
+    public void pair() throws BluezInProgressException, BluezInvalidArgumentsException, BluezFailedException, BluezAuthenticationFailedException, BluezAlreadyExistsException,
+            BluezAuthenticationCanceledException, BluezAuthenticationRejectedException, BluezAuthenticationTimeoutException, BluezConnectionAttemptFailedException {
         rawdevice.Pair();
     }
-
 
     /**
      * <b>From bluez Documentation:</b>
@@ -512,6 +543,7 @@ public class BluezDevice extends AbstractBluetoothObject {
      * This method can be used to cancel a pairing<br>
      * operation initiated by the Pair method.
      * </p>
+     * 
      * @return true if cancel succeeds, false otherwise
      */
     public boolean cancelPairing() {
@@ -525,6 +557,7 @@ public class BluezDevice extends AbstractBluetoothObject {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " [device=" + rawdevice + ", adapter=" + adapter.getDbusPath() + ", getBluetoothType()=" + getBluetoothType().name() + ", getDbusPath()=" + getDbusPath() + "]";
+        return getClass().getSimpleName() + " [device=" + rawdevice + ", adapter=" + adapter.getDbusPath() + ", getBluetoothType()=" + getBluetoothType().name() + ", getDbusPath()=" + getDbusPath()
+                + "]";
     }
 }

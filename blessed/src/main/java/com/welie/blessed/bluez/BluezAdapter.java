@@ -38,7 +38,7 @@ public class BluezAdapter extends AbstractBluetoothObject {
     private final Adapter1 adapter;
 
     /** Used to toggle discovery-mode because {@link #isDiscovering()} not always working as expected. */
-    private boolean internalDiscover;
+    //private boolean internalDiscover;
 
     public BluezAdapter(Adapter1 _adapter, String _dbusPath, DBusConnection _dbusConnection) {
         super(BluezDeviceType.ADAPTER, _dbusConnection, _dbusPath);

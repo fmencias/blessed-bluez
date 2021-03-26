@@ -14,15 +14,12 @@ import org.freedesktop.dbus.types.DBusListType;
 import org.freedesktop.dbus.types.Variant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import static com.welie.blessed.BluetoothBytesParser.bytes2String;
 import static com.welie.blessed.BluetoothCommandStatus.*;
 import static com.welie.blessed.BluetoothGattCharacteristic.*;
@@ -378,7 +375,6 @@ public final class BluetoothPeripheral {
      * @param characteristicUUID the characteristic's UUID
      * @return true if the operation was enqueued, false if the characteristic does not support reading or the characteristic was not found
      */
-    @SuppressWarnings("UnusedReturnValue")
     public boolean readCharacteristic(@NotNull final UUID serviceUUID, @NotNull final UUID characteristicUUID) {
         Objects.requireNonNull(serviceUUID, NO_VALID_SERVICE_UUID_PROVIDED);
         Objects.requireNonNull(characteristicUUID, NO_VALID_CHARACTERISTIC_PROVIDED);
@@ -400,7 +396,6 @@ public final class BluetoothPeripheral {
      * @param characteristic Specifies the characteristic to read.
      * @return true if the operation was enqueued, false if the characteristic does not support reading or the characteristic was invalid
      */
-    @SuppressWarnings("UnusedReturnValue")
     public boolean readCharacteristic(@NotNull final BluetoothGattCharacteristic characteristic) {
         Objects.requireNonNull(characteristic, "characteristic is 'null', ignoring read request");
 
@@ -470,7 +465,6 @@ public final class BluetoothPeripheral {
      * @param writeType          the write type to use when writing. Must be WRITE_TYPE_DEFAULT, WRITE_TYPE_NO_RESPONSE or WRITE_TYPE_SIGNED
      * @return true if a write operation was successfully enqueued, otherwise false
      */
-    @SuppressWarnings("UnusedReturnValue")
     public boolean writeCharacteristic(@NotNull final UUID serviceUUID, @NotNull final UUID characteristicUUID, @NotNull final byte[] value, @NotNull final WriteType writeType) {
         Objects.requireNonNull(serviceUUID, NO_VALID_SERVICE_UUID_PROVIDED);
         Objects.requireNonNull(characteristicUUID, NO_VALID_CHARACTERISTIC_UUID_PROVIDED);
@@ -497,7 +491,6 @@ public final class BluetoothPeripheral {
      * @param writeType      the write type to use when writing. Must be WRITE_TYPE_DEFAULT, WRITE_TYPE_NO_RESPONSE or WRITE_TYPE_SIGNED
      * @return true if a write operation was successfully enqueued, otherwise false
      */
-    @SuppressWarnings({"UnusedReturnValue", "unused"})
     public boolean writeCharacteristic(@NotNull final BluetoothGattCharacteristic characteristic, @NotNull final byte[] value, @NotNull final WriteType writeType) {
         Objects.requireNonNull(characteristic, NO_VALID_CHARACTERISTIC_PROVIDED);
         Objects.requireNonNull(value, NO_VALID_VALUE_PROVIDED);
@@ -578,7 +571,6 @@ public final class BluetoothPeripheral {
      * @param enable             true for setting notification on, false for turning it off
      * @return true if the operation was enqueued, false the characteristic could not be found or does not support notifications
      */
-    @SuppressWarnings("UnusedReturnValue")
     public boolean setNotify(@NotNull final UUID serviceUUID, @NotNull final UUID characteristicUUID, final boolean enable) {
         Objects.requireNonNull(serviceUUID, NO_VALID_SERVICE_UUID_PROVIDED);
         Objects.requireNonNull(characteristicUUID, NO_VALID_CHARACTERISTIC_PROVIDED);
@@ -599,7 +591,6 @@ public final class BluetoothPeripheral {
      * @param enable         true for setting notification on, false for turning it off
      * @return true if the operation was enqueued, false if the characteristic doesn't support notification or indications or
      */
-    @SuppressWarnings("UnusedReturnValue")
     public boolean setNotify(@NotNull final BluetoothGattCharacteristic characteristic, final boolean enable) {
         Objects.requireNonNull(characteristic, NO_VALID_CHARACTERISTIC_PROVIDED);
 
@@ -668,7 +659,6 @@ public final class BluetoothPeripheral {
      * Read the RSSI for a connected peripheral
      * onReadRemoteRssi(BluetoothPeripheral, int, int) will be triggered as a result of this call.
      */
-    @SuppressWarnings("unused")
     public void readRemoteRssi() {
         try {
             logger.info(String.format("reading rssi for '%s'", deviceName));
@@ -803,6 +793,7 @@ public final class BluetoothPeripheral {
                     if (value.getValue().equals(true)) {
                         isBonded = true;
                         gattCallback.onPaired();
+                        logger.trace("Property paired manualBonding={} bondingInProgress={}", manualBonding, bondingInProgress);
                         if (manualBonding || bondingInProgress) {
                             // We are now done with createBond, so call servicesResolved
                             servicesResolved();
@@ -832,6 +823,7 @@ public final class BluetoothPeripheral {
     /**
      * Retry the current command. Typically used when a read/write fails and triggers a bonding procedure
      */
+    @SuppressWarnings("unused")
     private void retryCommand() {
         commandQueueBusy = false;
         final Runnable currentCommand = commandQueue.peek();

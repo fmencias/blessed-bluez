@@ -23,6 +23,7 @@ import static com.welie.blessed.BluetoothPeripheral.BLUEZ_DEVICE_INTERFACE;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@SuppressWarnings({"unused","rawtypes","unchecked"})
 class BluezSignalHandlerTest {
 
     @Mock

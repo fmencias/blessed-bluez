@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * Represents a Bluetooth Gatt descriptor
  */
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+
 public class BluetoothGattDescriptor {
     /**
      * Value used to enable notification for a client configuration descriptor
