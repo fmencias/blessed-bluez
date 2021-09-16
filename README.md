@@ -1,6 +1,7 @@
 # BLESSED for Bluez - BLE made easy
 
 [![](https://jitpack.io/v/weliem/blessed-bluez.svg)](https://jitpack.io/#weliem/blessed-bluez)
+[![Downloads](https://jitpack.io/v/weliem/blessed-bluez/month.svg)](https://jitpack.io/#weliem/blessed-bluez)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/weliem/blessed-bluez.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/weliem/blessed-bluez/alerts/)
 [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/weliem/blessed-bluez.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/weliem/blessed-bluez/context:java)
 
@@ -15,6 +16,22 @@ The library consists of 3 core classes and 2 callback abstract classes:
 The `BluetoothCentralManager` class is used to scan for devices and manage connections. The `BluetoothPeripheral` class represent the peripheral and wraps all GATT related peripheral functionality. The `BluetoothBytesParser` class is a utility class that makes parsing byte arrays easy.
 
 The BLESSED library was inspired by CoreBluetooth on iOS and provides the same level of abstraction. If you already have developed using CoreBluetooth you can very easily port your code to Linux using this library. It has been tested on Ubuntu 18/19/20 and Raspberry Pi's.
+## Installation
+
+The library is available on Jitpack and uses Logback for logging:
+
+```groovy
+repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+}
+
+dependencies {
+    implementation "ch.qos.logback:logback-core:+"
+    implementation "ch.qos.logback:logback-classic:+"
+    implementation "com.github.weliem.blessed-bluez:blessed:0.39"
+}
+```
 
 ## Scanning
 

@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.m2csolutions</groupId>
 	<artifactId>blessed-bluez</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<build>
 		<sourceDirectory>blessed/src/main/java</sourceDirectory>
 		<testSourceDirectory>blessed/src/test/java</testSourceDirectory>
@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>com.github.hypfvieh</groupId>
 			<artifactId>dbus-java</artifactId>
-			<version>3.2.4</version>
+			<version>3.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains</groupId>
