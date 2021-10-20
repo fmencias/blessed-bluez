@@ -215,6 +215,7 @@ public class BluetoothCentralManager {
 
         private void restartScannerIfNeeded() {
             if (autoScanActive || normalScanActive) {
+                logger.trace("Restarting scanner");
                 startScanning();
             }
         }
@@ -428,10 +429,12 @@ public class BluetoothCentralManager {
 
     private boolean notAllowedByFilter(@NotNull final ScanResult scanResult) {
         if (!scanPeripheralNames.isEmpty() && scanResult.getName() != null) {
+            logger.trace("Filtered: scanResultName={} in scanPeriphName={}", scanResult.getName(), scanPeripheralNames.contains(scanResult.getName()));
             return !scanPeripheralNames.contains(scanResult.getName());
         }
 
         if (!scanPeripheralAddresses.isEmpty()) {
+            logger.trace("scanPerihAddr has {} = {}", scanResult.getAddress(), scanPeripheralAddresses.contains(scanResult.getAddress()));
             return !scanPeripheralAddresses.contains(scanResult.getAddress());
         }
 
@@ -442,6 +445,7 @@ public class BluetoothCentralManager {
                     return false;
                 }
             }
+            logger.trace("uuid not present in scanServiceUUID");
             return true;
         }
 
@@ -493,7 +497,7 @@ public class BluetoothCentralManager {
                 return;
 
             if (notAllowedByFilter(scanResult)) {
-                // logger.trace("[{}] onScanResult filtered", peripheral.getAddress());
+                logger.trace("[{}] onScanResult filtered", peripheral.getAddress());
                 return;
             }
 
@@ -687,6 +691,7 @@ public class BluetoothCentralManager {
 
                     callBackHandler.post(bluetoothCentralManagerCallback::onScanStarted);
                 } else {
+                    logger.trace("scan stopped");
                     scannedPeripherals.clear();
                     scannedBluezDevices.clear();
                     scanResultCache.clear();
@@ -740,6 +745,7 @@ public class BluetoothCentralManager {
             // If we are already scanning then complete the command immediately
             isScanning = adapter.isDiscovering();
             if (isScanning) {
+                logger.trace("is yet scanning");
                 completedCommand();
                 return;
             }
@@ -756,6 +762,7 @@ public class BluetoothCentralManager {
             // Start the discovery
             try {
                 currentCommand = PROPERTY_DISCOVERING;
+                logger.trace("starting discovery");
                 adapter.startDiscovery();
                 if (!this.scanOptions.contains(SCANOPTION_NO_AUTORESTART)) {
                     startScanTimer();
