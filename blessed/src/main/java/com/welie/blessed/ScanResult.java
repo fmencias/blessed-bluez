@@ -1,8 +1,9 @@
 package com.welie.blessed;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,6 +22,9 @@ public class ScanResult {
     private int rssi;
     private Map<@NotNull Integer, byte[]> manufacturerData;
     private Map<@NotNull String, byte[]> serviceData;
+    
+    private static final Logger logger = LogManager.getLogger(ScanResult.class);
+
 
     public ScanResult(@Nullable String deviceName, @NotNull String deviceAddress, @NotNull List<@NotNull UUID> uuids, int rssi, @NotNull Map<@NotNull Integer, byte[]> manufacturerData, @NotNull Map<@NotNull String, byte[]> serviceData) {
         this.name = deviceName;
@@ -30,6 +34,7 @@ public class ScanResult {
         setManufacturerData(manufacturerData);
         setServiceData(serviceData);
         stamp();
+        logger.info("{} with {} uuids", this.toString(), this.uuids.size());
     }
 
     /**

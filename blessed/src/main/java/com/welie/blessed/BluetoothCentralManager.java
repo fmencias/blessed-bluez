@@ -1,7 +1,11 @@
 package com.welie.blessed;
 
+
 import com.welie.blessed.bluez.*;
 import com.welie.blessed.internal.InternalCallback;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bluez.Device1;
 import org.bluez.exceptions.*;
 import org.freedesktop.dbus.DBusMap;
@@ -21,8 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import static com.welie.blessed.BluetoothPeripheral.*;
 import static com.welie.blessed.ConnectionState.CONNECTED;
 import static java.lang.Thread.sleep;
@@ -34,8 +36,9 @@ import java.io.InputStreamReader;
  * Represents a Bluetooth Central object
  */
 public class BluetoothCentralManager {
-    private static final String TAG = BluetoothCentralManager.class.getSimpleName();
-    private final Logger logger = LoggerFactory.getLogger(TAG);
+    
+    private static final Logger logger = LogManager.getLogger(BluetoothCentralManager.class);
+
 
     @NotNull
     private final BluezAdapter adapter;
