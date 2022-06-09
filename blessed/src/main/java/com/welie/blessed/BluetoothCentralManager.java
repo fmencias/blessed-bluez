@@ -437,7 +437,7 @@ public class BluetoothCentralManager {
         }
 
         if (!scanPeripheralAddresses.isEmpty()) {
-            logger.trace("scanPerihAddr has {} = {}", scanResult.getAddress(), scanPeripheralAddresses.contains(scanResult.getAddress()));
+            //logger.trace("scanPerihAddr has {} = {}", scanResult.getAddress(), scanPeripheralAddresses.contains(scanResult.getAddress()));
             return !scanPeripheralAddresses.contains(scanResult.getAddress());
         }
 
@@ -448,7 +448,7 @@ public class BluetoothCentralManager {
                     return false;
                 }
             }
-            logger.trace("uuid not present in scanServiceUUID");
+            //logger.trace("uuid not present in scanServiceUUID");
             return true;
         }
 
@@ -500,7 +500,7 @@ public class BluetoothCentralManager {
                 return;
 
             if (notAllowedByFilter(scanResult)) {
-                logger.trace("[{}] onScanResult filtered", peripheral.getAddress());
+                //logger.trace("[{}] onScanResult filtered", peripheral.getAddress());
                 return;
             }
 
